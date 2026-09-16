@@ -2,7 +2,7 @@ from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django.views.generic import DetailView, FormView, ListView
 
-from .forms import EmailPostForm
+from .forms import CommentForm, EmailPostForm
 from .models import Post
 
 
@@ -29,6 +29,12 @@ class PostDetailView(DetailView):
             published_at__month=self.kwargs["month"],
             published_at__day=self.kwargs["day"],
         )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["comments"] = self.object.comments.filter(active=True)
+        context["form"] = CommentForm()
+        return context
 
 
 class PostShareView(FormView):
@@ -68,4 +74,31 @@ class PostShareView(FormView):
         context["post"] = self.post_obj
         context["sent"] = self.sent
         context["recipient"] = self.recipient
+        return context
+
+
+class PostCommentView(FormView):
+    template_name = "blog/post/comment.html"
+    form_class = CommentForm
+
+    def dispatch(self, request, *args, **kwargs):
+        self.post_obj = get_object_or_404(
+            Post,
+            id=kwargs["post_id"],
+            status=Post.Status.PUBLISHED,
+        )
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_success_url(self):
+        return self.post_obj.get_absolute_url()
+
+    def form_valid(self, form):
+        comment = form.save(commit=False)
+        comment.post = self.post_obj
+        comment.save()
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["post"] = self.post_obj
         return context
