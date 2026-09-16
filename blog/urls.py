@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import PostDetailView, PostListView
+from .views import PostDetailView, PostListView, PostShareView
 
 app_name = "blog"
 urlpatterns = [
@@ -10,4 +10,5 @@ urlpatterns = [
         PostDetailView.as_view(),
         name="post_detail",
     ),
+    path("<int:post_id>/share/", PostShareView.as_view(), name="post_share"),
 ]
