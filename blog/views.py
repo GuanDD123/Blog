@@ -1,6 +1,8 @@
 from django.core.mail import send_mail
+from django.db.models import Count
 from django.shortcuts import get_object_or_404
 from django.views.generic import DetailView, FormView, ListView
+from taggit.models import Tag
 
 from .forms import CommentForm, EmailPostForm
 from .models import Post
@@ -13,7 +15,21 @@ class PostListView(ListView):
     paginate_by = 3
 
     def get_queryset(self):
-        return Post.published.all()
+        queryset = Post.published.all()
+
+        tag_slug = self.kwargs.get("tag_slug")
+        if tag_slug:
+            self.tag = get_object_or_404(Tag, slug=tag_slug)
+            queryset = queryset.filter(tags__in=[self.tag])
+        else:
+            self.tag = None
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["tag"] = self.tag
+        return context
 
 
 class PostDetailView(DetailView):
@@ -33,6 +49,16 @@ class PostDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["comments"] = self.object.comments.filter(active=True)
+
+        post_tags_ids = self.object.tags.values_list("id", flat=True)
+        similar_posts = (
+            Post.published.filter(tags__in=post_tags_ids)
+            .exclude(id=self.object.id)
+            .annotate(same_tags=Count("tags"))
+            .order_by("-same_tags", "-published_at")
+        )
+        context["similar_posts"] = similar_posts[:3]
+
         context["form"] = CommentForm()
         return context
 
