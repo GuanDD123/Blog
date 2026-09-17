@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.text import slugify
 from taggit.managers import TaggableManager
 
 
@@ -31,6 +32,11 @@ class Post(models.Model):
         max_length=2, choices=Status.choices, default=Status.DRAFT
     )
     tags = TaggableManager()
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
 
     class Meta:
         ordering = ("-published_at",)

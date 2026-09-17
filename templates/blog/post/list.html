@@ -26,3 +26,7 @@ My Blog
 {% endfor %}
 {% include "pagination.html" with page=page_obj %}
 {% endblock %}
+
+{% block sidebar %}
+{% include "blog/post/include/sidebar.html" %}
+{% endblock %}

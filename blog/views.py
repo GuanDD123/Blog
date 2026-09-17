@@ -7,7 +7,9 @@ from django.contrib.postgres.search import (
 from django.core.mail import send_mail
 from django.db.models import Count
 from django.shortcuts import get_object_or_404
+from django.urls import reverse_lazy
 from django.views.generic import DetailView, FormView, ListView
+from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from taggit.models import Tag
 
 from .forms import CommentForm, EmailPostForm, SearchForm
@@ -69,6 +71,26 @@ class PostDetailView(DetailView):
         return context
 
 
+class PostCreateView(CreateView):
+    model = Post
+    template_name = "blog/post/new.html"
+    context_object_name = "post"
+    fields = ("title", "author", "content", "published_at", "status", "tags")
+
+class PostUpdateView(UpdateView):
+    model = Post
+    template_name = "blog/post/edit.html"
+    context_object_name = "post"
+    fields = ("title", "content", "published_at", "status", "tags")
+
+
+class PostDeleteView(DeleteView):
+    model = Post
+    template_name = "blog/post/delete.html"
+    context_object_name = "post"
+    success_url = reverse_lazy("blog:post_list")
+
+
 class PostShareView(FormView):
     template_name = "blog/post/share.html"
     form_class = EmailPostForm
@@ -83,6 +105,13 @@ class PostShareView(FormView):
         self.sent = False
         self.recipient = None
         return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["post"] = self.post_obj
+        context["sent"] = self.sent
+        context["recipient"] = self.recipient
+        return context
 
     def form_valid(self, form):
         cd = form.cleaned_data
@@ -101,13 +130,6 @@ class PostShareView(FormView):
         self.recipient = cd["to"]
         return self.render_to_response(self.get_context_data(form=form))
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["post"] = self.post_obj
-        context["sent"] = self.sent
-        context["recipient"] = self.recipient
-        return context
-
 
 class PostCommentView(FormView):
     template_name = "blog/post/comment.html"
@@ -121,8 +143,10 @@ class PostCommentView(FormView):
         )
         return super().dispatch(request, *args, **kwargs)
 
-    def get_success_url(self):
-        return self.post_obj.get_absolute_url()
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["post"] = self.post_obj
+        return context
 
     def form_valid(self, form):
         comment = form.save(commit=False)
@@ -130,10 +154,8 @@ class PostCommentView(FormView):
         comment.save()
         return super().form_valid(form)
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["post"] = self.post_obj
-        return context
+    def get_success_url(self):
+        return self.post_obj.get_absolute_url()
 
 
 class PostSearch(FormView):

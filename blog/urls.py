@@ -3,11 +3,14 @@ from django.urls import path
 from .feeds import LatestPostsFeed
 from .views import (
     PostCommentView,
+    PostCreateView,
+    PostDeleteView,
     PostDetailView,
     PostListView,
     PostSearch,
     PostSearchTrigramSimilarity,
     PostShareView,
+    PostUpdateView,
 )
 
 app_name = "blog"
@@ -19,6 +22,9 @@ urlpatterns = [
         PostDetailView.as_view(),
         name="post_detail",
     ),
+    path("new/", PostCreateView.as_view(), name="post_new"),
+    path("<int:pk>/edit/", PostUpdateView.as_view(), name="post_edit"),
+    path("<int:pk>/delete/", PostDeleteView.as_view(), name="post_delete"),
     path("<int:post_id>/share/", PostShareView.as_view(), name="post_share"),
     path("<int:post_id>/comment/", PostCommentView.as_view(), name="post_comment"),
     path("feed/", LatestPostsFeed(), name="post_feed"),

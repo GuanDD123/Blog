@@ -54,16 +54,17 @@ p.date {
 
 /* forms */
 label {
-    float: left;
+    display: block;
     clear: both;
     color: #333;
     margin-bottom: 4px;
 }
 
 input,
-textarea {
+textarea,
+select {
+    display: block;
     clear: both;
-    float: left;
     margin: 0 0 10px;
     background: #ededed;
     border: 0;
@@ -82,7 +83,6 @@ input[type=submit] {
 
 .errorlist {
     color: #cc0033;
-    float: left;
     clear: both;
     padding-left: 10px;
 }
