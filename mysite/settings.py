@@ -38,6 +38,8 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
+    "django.contrib.sites",
+    "django.contrib.sitemaps",
     "django.contrib.staticfiles",
     "taggit",
     "blog.apps.BlogConfig",
@@ -131,3 +133,5 @@ MAILERS = {
     },
 }
 DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL")
+
+SITE_ID = 1
