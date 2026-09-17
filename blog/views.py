@@ -1,10 +1,16 @@
+from django.contrib.postgres.search import (
+    SearchQuery,
+    SearchRank,
+    SearchVector,
+    TrigramSimilarity,
+)
 from django.core.mail import send_mail
 from django.db.models import Count
 from django.shortcuts import get_object_or_404
 from django.views.generic import DetailView, FormView, ListView
 from taggit.models import Tag
 
-from .forms import CommentForm, EmailPostForm
+from .forms import CommentForm, EmailPostForm, SearchForm
 from .models import Post
 
 
@@ -128,3 +134,69 @@ class PostCommentView(FormView):
         context = super().get_context_data(**kwargs)
         context["post"] = self.post_obj
         return context
+
+
+class PostSearch(FormView):
+    template_name = "blog/post/search.html"
+    form_class = SearchForm
+
+    def get(self, request, *args, **kwargs):
+        if "query" in request.GET:
+            form = self.form_class(request.GET)
+        else:
+            form = self.form_class()
+
+        if form.is_valid():
+            cd = form.cleaned_data
+
+            search_vector = SearchVector(
+                "title", weight="A", config="english"
+            ) + SearchVector("content", weight="B", config="english")
+            search_query = SearchQuery(cd["query"], config="english")
+            results = (
+                Post.published.annotate(
+                    search=search_vector, rank=SearchRank(search_vector, search_query)
+                )
+                .filter(rank__gte=0.1)
+                .order_by("-rank")
+            )
+
+            return self.render_to_response(
+                self.get_context_data(
+                    query=cd["query"],
+                    results=results,
+                )
+            )
+
+        return self.render_to_response(self.get_context_data(form=form))
+
+
+class PostSearchTrigramSimilarity(FormView):
+    template_name = "blog/post/search.html"
+    form_class = SearchForm
+
+    def get(self, request, *args, **kwargs):
+        if "query" in request.GET:
+            form = self.form_class(request.GET)
+        else:
+            form = self.form_class()
+
+        if form.is_valid():
+            cd = form.cleaned_data
+
+            results = (
+                Post.published.annotate(
+                    similarity=TrigramSimilarity("title", cd["query"])
+                )
+                .filter(similarity__gt=0.1)
+                .order_by("-similarity")
+            )
+
+            return self.render_to_response(
+                self.get_context_data(
+                    query=cd["query"],
+                    results=results,
+                )
+            )
+
+        return self.render_to_response(self.get_context_data(form=form))

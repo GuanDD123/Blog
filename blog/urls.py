@@ -1,7 +1,14 @@
 from django.urls import path
 
 from .feeds import LatestPostsFeed
-from .views import PostCommentView, PostDetailView, PostListView, PostShareView
+from .views import (
+    PostCommentView,
+    PostDetailView,
+    PostListView,
+    PostSearch,
+    PostSearchTrigramSimilarity,
+    PostShareView,
+)
 
 app_name = "blog"
 urlpatterns = [
@@ -15,4 +22,10 @@ urlpatterns = [
     path("<int:post_id>/share/", PostShareView.as_view(), name="post_share"),
     path("<int:post_id>/comment/", PostCommentView.as_view(), name="post_comment"),
     path("feed/", LatestPostsFeed(), name="post_feed"),
+    path("search/", PostSearch.as_view(), name="post_search"),
+    path(
+        "search/trigram/",
+        PostSearchTrigramSimilarity.as_view(),
+        name="post_search_trigram",
+    ),
 ]
