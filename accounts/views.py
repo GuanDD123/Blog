@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, render
@@ -50,13 +51,15 @@ class EditView(LoginRequiredMixin, View):
         if user_form.is_valid() and profile_form.is_valid():
             user_form.save()
             profile_form.save()
+            messages.success(request, "Profile updated successfully.")
             return redirect("dashboard")
-
-        return render(
-            request,
-            self.template_name,
-            {
-                "user_form": user_form,
-                "profile_form": profile_form,
-            },
-        )
+        else:
+            messages.error(request, "Error updating profile.")
+            return render(
+                request,
+                self.template_name,
+                {
+                    "user_form": user_form,
+                    "profile_form": profile_form,
+                },
+            )
