@@ -18,7 +18,7 @@ from .models import Post
 
 class PostListView(ListView):
     model = Post
-    template_name = "blog/post/list.html"
+    template_name = "blog/list.html"
     context_object_name = "posts"
     paginate_by = 3
 
@@ -42,7 +42,7 @@ class PostListView(ListView):
 
 class PostDetailView(DetailView):
     model = Post
-    template_name = "blog/post/detail.html"
+    template_name = "blog/detail.html"
     context_object_name = "post"
     slug_url_kwarg = "slug"
 
@@ -73,26 +73,26 @@ class PostDetailView(DetailView):
 
 class PostCreateView(CreateView):
     model = Post
-    template_name = "blog/post/new.html"
+    template_name = "blog/new.html"
     context_object_name = "post"
     fields = ("title", "author", "content", "published_at", "status", "tags")
 
 class PostUpdateView(UpdateView):
     model = Post
-    template_name = "blog/post/edit.html"
+    template_name = "blog/edit.html"
     context_object_name = "post"
     fields = ("title", "content", "published_at", "status", "tags")
 
 
 class PostDeleteView(DeleteView):
     model = Post
-    template_name = "blog/post/delete.html"
+    template_name = "blog/delete.html"
     context_object_name = "post"
     success_url = reverse_lazy("blog:post_list")
 
 
 class PostShareView(FormView):
-    template_name = "blog/post/share.html"
+    template_name = "blog/share.html"
     form_class = EmailPostForm
 
     def dispatch(self, request, *args, **kwargs):
@@ -132,7 +132,7 @@ class PostShareView(FormView):
 
 
 class PostCommentView(FormView):
-    template_name = "blog/post/comment.html"
+    template_name = "blog/comment.html"
     form_class = CommentForm
 
     def dispatch(self, request, *args, **kwargs):
@@ -159,7 +159,7 @@ class PostCommentView(FormView):
 
 
 class PostSearch(FormView):
-    template_name = "blog/post/search.html"
+    template_name = "blog/search.html"
     form_class = SearchForm
 
     def get(self, request, *args, **kwargs):
@@ -194,7 +194,7 @@ class PostSearch(FormView):
 
 
 class PostSearchTrigramSimilarity(FormView):
-    template_name = "blog/post/search.html"
+    template_name = "blog/search.html"
     form_class = SearchForm
 
     def get(self, request, *args, **kwargs):

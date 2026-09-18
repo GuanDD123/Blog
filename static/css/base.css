@@ -106,6 +106,7 @@ ol {
 }
 
 #content {
+    float: left;
     padding: 30px 100px;
 }
 
@@ -127,7 +128,8 @@ label {
 }
 
 input,
-textarea {
+textarea,
+select {
     clear: both;
     float: left;
     margin: 0 0 10px;
@@ -369,4 +371,45 @@ img.user-detail {
 .action .date {
     font-style: italic;
     color: #ccc;
+}
+
+#sidebar {
+    float: right;
+    width: 30%;
+    padding: 10px;
+    background: #efefef;
+    height: 100%;
+}
+
+p.date {
+    color: #ccc;
+    font-family: georgia, serif;
+    font-size: 12px;
+    font-style: italic;
+}
+
+.left {
+    float: left;
+    margin-right: 10px;
+}
+
+/* pagination */
+.pagination {
+    margin: 40px 0;
+    font-weight: bold;
+}
+
+/* comments */
+.comment {
+    padding: 10px;
+}
+
+.comment:nth-child(even) {
+    background: #efefef;
+}
+
+.comment .info {
+    font-weight: bold;
+    font-size: 12px;
+    color: #666;
 }
