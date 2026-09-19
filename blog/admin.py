@@ -5,6 +5,11 @@ from django.contrib import admin
 from .models import Comment, Post
 
 
+class CommentInline(admin.TabularInline):
+    model = Comment
+    extra = 0
+
+
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
     list_display = ("title", "slug", "author", "status", "published_at")
@@ -14,6 +19,7 @@ class PostAdmin(admin.ModelAdmin):
     ordering = ("status", "published_at")
     prepopulated_fields: ClassVar[dict[str, tuple[str, ...]]] = {"slug": ("title",)}
     autocomplete_fields = ("author",)
+    inlines = (CommentInline,)
 
 
 @admin.register(Comment)
