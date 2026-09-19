@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.postgres",
     "taggit",
+    "easy_thumbnails",
     "blog.apps.BlogConfig",
     "images.apps.ImagesConfig",
 ]
