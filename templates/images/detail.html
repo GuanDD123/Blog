@@ -35,8 +35,11 @@
         {% if user.profile.photo %}
         <img src="{{ user.profile.photo.url }}">
         {% endif %}
-        <p>{{ user.first_name }}</p>
-    </div> {% empty %} Nobody likes this image yet. {% endfor %}
+        <p>{{ user.username }}</p>
+    </div>
+    {% empty %}
+    Nobody likes this image yet.
+    {% endfor %}
 </div>
 {% endwith %}
 {% endblock %}
