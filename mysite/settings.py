@@ -151,6 +151,8 @@ MAILERS = {
 DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL")
 
 
+AUTH_USER_MODEL = "accounts.CustomUser"
+
 SITE_ID = 1
 
 LOGIN_REDIRECT_URL = "dashboard"
