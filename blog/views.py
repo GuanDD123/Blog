@@ -50,7 +50,6 @@ class PostDetailView(DetailView):
 
     def get_queryset(self):
         return Post.objects.filter(
-            status=Post.Status.PUBLISHED,
             published_at__year=self.kwargs["year"],
             published_at__month=self.kwargs["month"],
             published_at__day=self.kwargs["day"],
@@ -77,7 +76,11 @@ class PostCreateView(LoginRequiredMixin, CreateView):
     model = Post
     template_name = "blog/new.html"
     context_object_name = "post"
-    fields = ("title", "author", "content", "published_at", "status", "tags")
+    fields = ("title", "content", "published_at", "status", "tags")
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        return super().form_valid(form)
 
 
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
