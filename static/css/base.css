@@ -106,7 +106,7 @@ ol {
 }
 
 #content {
-    float: left;
+    /* float: left; */
     padding: 30px 100px;
 }
 

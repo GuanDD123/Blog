@@ -1,6 +1,7 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
-from django.views.generic import CreateView
+from django.views.generic import CreateView, ListView, View
 
 from .forms import ImageCreateForm
 from .models import Image
@@ -26,3 +27,49 @@ class ImageCreateView(LoginRequiredMixin, CreateView):
 def image_detail(request, id, slug):
     image = get_object_or_404(Image, id=id, slug=slug)
     return render(request, "images/detail.html", {"section": "images", "image": image})
+
+
+class ImageLikeView(View):
+    def post(self, request, *args, **kwargs):
+        image_id = request.POST.get("id")
+        action = request.POST.get("action")
+
+        if not image_id or not action:
+            return JsonResponse({"status": "error"})
+
+        image = get_object_or_404(Image, id=image_id)
+
+        if action == "like":
+            image.users_like.add(request.user)
+        elif action == "unlike":
+            image.users_like.remove(request.user)
+        else:
+            return JsonResponse({"status": "error"})
+
+        return JsonResponse({"status": "ok"})
+
+
+class ImageListView(ListView):
+    model = Image
+    context_object_name = "images"
+    paginate_by = 8
+
+    def get(self, request, *args, **kwargs):
+        self.object_list = self.get_queryset()
+
+        try:
+            return super().get(request, *args, **kwargs)
+        except Http404:
+            if request.GET.get("images_only"):
+                return HttpResponse("")
+            raise
+
+    def get_template_names(self):
+        if self.request.GET.get("images_only"):
+            return ["images/list_images.html"]
+        return ["images/list.html"]
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["section"] = "images"
+        return context
