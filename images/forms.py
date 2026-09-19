@@ -8,6 +8,10 @@ from django.utils.text import slugify
 from .models import Image
 
 
+class ImageURLForm(forms.Form):
+    url = forms.URLField()
+
+
 class ImageCreateForm(forms.ModelForm):
     class Meta:
         model = Image

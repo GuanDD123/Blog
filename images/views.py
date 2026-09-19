@@ -3,7 +3,7 @@ from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.views.generic import CreateView, ListView, View
 
-from .forms import ImageCreateForm
+from .forms import ImageCreateForm, ImageURLForm
 from .models import Image
 
 
@@ -18,6 +18,11 @@ class ImageCreateView(LoginRequiredMixin, CreateView):
         initial["url"] = self.request.GET.get("url", "")
         initial["title"] = self.request.GET.get("title", "")
         return initial
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["url_form"] = ImageURLForm(self.request.GET or None)
+        return context
 
     def form_valid(self, form):
         form.instance.user = self.request.user

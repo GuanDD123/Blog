@@ -6,6 +6,11 @@ Bookmark an image
 
 {% block content %}
 <h1>Bookmark an image</h1>
+<form method="get">
+    {{ url_form.as_p }}
+    <input type="submit" value="GO">
+</form>
+<hr>
 <img src="{{ request.GET.url }}" class="image-preview">
 <form method="post">
     {% csrf_token %}
