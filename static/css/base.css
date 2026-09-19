@@ -106,8 +106,10 @@ ol {
 }
 
 #content {
-    /* float: left; */
+    float: left;
+    width: 100%;
     padding: 30px 100px;
+    box-sizing: border-box;
 }
 
 /* forms */
@@ -379,6 +381,10 @@ img.user-detail {
     padding: 10px;
     background: #efefef;
     height: 100%;
+}
+
+body:has(#sidebar) #content {
+    width: calc(70% - 20px);
 }
 
 p.date {
