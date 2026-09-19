@@ -16,7 +16,6 @@ class ImageCreateView(LoginRequiredMixin, CreateView):
     def get_initial(self):
         initial = super().get_initial()
         initial["url"] = self.request.GET.get("url", "")
-        initial["title"] = self.request.GET.get("title", "")
         return initial
 
     def get_context_data(self, **kwargs):

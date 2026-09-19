@@ -1,3 +1,4 @@
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.postgres.search import (
     SearchQuery,
     SearchRank,
@@ -6,9 +7,9 @@ from django.contrib.postgres.search import (
 )
 from django.core.mail import send_mail
 from django.db.models import Count
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
 from django.urls import reverse_lazy
-from django.views.generic import DetailView, FormView, ListView
+from django.views.generic import DetailView, FormView, ListView, View
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from taggit.models import Tag
 
@@ -36,6 +37,7 @@ class PostListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context["section"] = "blog"
         context["tag"] = self.tag
         return context
 
@@ -56,8 +58,8 @@ class PostDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context["section"] = "blog"
         context["comments"] = self.object.comments.filter(active=True)
-
         post_tags_ids = self.object.tags.values_list("id", flat=True)
         similar_posts = (
             Post.published.filter(tags__in=post_tags_ids)
@@ -71,27 +73,36 @@ class PostDetailView(DetailView):
         return context
 
 
-class PostCreateView(CreateView):
+class PostCreateView(LoginRequiredMixin, CreateView):
     model = Post
     template_name = "blog/new.html"
     context_object_name = "post"
     fields = ("title", "author", "content", "published_at", "status", "tags")
 
-class PostUpdateView(UpdateView):
+
+class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Post
     template_name = "blog/edit.html"
     context_object_name = "post"
     fields = ("title", "content", "published_at", "status", "tags")
 
+    def test_func(self):
+        post = self.get_object()
+        return self.request.user == post.author
 
-class PostDeleteView(DeleteView):
+
+class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Post
     template_name = "blog/delete.html"
     context_object_name = "post"
     success_url = reverse_lazy("blog:post_list")
 
+    def test_func(self):
+        post = self.get_object()
+        return self.request.user == post.author
 
-class PostShareView(FormView):
+
+class PostShareView(LoginRequiredMixin, FormView):
     template_name = "blog/share.html"
     form_class = EmailPostForm
 
@@ -131,7 +142,7 @@ class PostShareView(FormView):
         return self.render_to_response(self.get_context_data(form=form))
 
 
-class PostCommentView(FormView):
+class PostCommentView(LoginRequiredMixin, CreateView):
     template_name = "blog/comment.html"
     form_class = CommentForm
 
@@ -145,28 +156,26 @@ class PostCommentView(FormView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context["section"] = "blog"
         context["post"] = self.post_obj
         return context
 
     def form_valid(self, form):
-        comment = form.save(commit=False)
-        comment.post = self.post_obj
-        comment.save()
+        form.instance.post = self.post_obj
+        form.instance.name = self.request.user.username
+        form.instance.email = self.request.user.email
         return super().form_valid(form)
 
     def get_success_url(self):
         return self.post_obj.get_absolute_url()
 
 
-class PostSearch(FormView):
+class PostSearch(View):
     template_name = "blog/search.html"
     form_class = SearchForm
 
     def get(self, request, *args, **kwargs):
-        if "query" in request.GET:
-            form = self.form_class(request.GET)
-        else:
-            form = self.form_class()
+        form = self.form_class(request.GET or None)
 
         if form.is_valid():
             cd = form.cleaned_data
@@ -183,25 +192,21 @@ class PostSearch(FormView):
                 .order_by("-rank")
             )
 
-            return self.render_to_response(
-                self.get_context_data(
-                    query=cd["query"],
-                    results=results,
-                )
+            return render(
+                request,
+                self.template_name,
+                {"query": cd["query"], "results": results, "section": "blog"},
             )
 
-        return self.render_to_response(self.get_context_data(form=form))
+        return render(request, self.template_name, {"form": form, "section": "blog"})
 
 
-class PostSearchTrigramSimilarity(FormView):
+class PostSearchTrigramSimilarity(View):
     template_name = "blog/search.html"
     form_class = SearchForm
 
     def get(self, request, *args, **kwargs):
-        if "query" in request.GET:
-            form = self.form_class(request.GET)
-        else:
-            form = self.form_class()
+        form = self.form_class(request.GET or None)
 
         if form.is_valid():
             cd = form.cleaned_data
@@ -214,11 +219,10 @@ class PostSearchTrigramSimilarity(FormView):
                 .order_by("-similarity")
             )
 
-            return self.render_to_response(
-                self.get_context_data(
-                    query=cd["query"],
-                    results=results,
-                )
+            return render(
+                request,
+                self.template_name,
+                {"query": cd["query"], "results": results, "section": "blog"},
             )
 
-        return self.render_to_response(self.get_context_data(form=form))
+        return render(request, self.template_name, {"form": form, "section": "blog"})

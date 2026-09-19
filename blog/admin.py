@@ -13,7 +13,7 @@ class PostAdmin(admin.ModelAdmin):
     date_hierarchy = "published_at"
     ordering = ("status", "published_at")
     prepopulated_fields: ClassVar[dict[str, tuple[str, ...]]] = {"slug": ("title",)}
-    raw_id_fields = ("author",)
+    autocomplete_fields = ("author",)
 
 
 @admin.register(Comment)
