@@ -8,7 +8,7 @@ from .models import Profile
 class CustomUserCreationForm(UserCreationForm):
     class Meta:
         model = get_user_model()
-        fields = UserCreationForm.Meta.fields + ("following",)
+        fields = UserCreationForm.Meta.fields + ("email",)
 
 
 class CustomUserChangeForm(UserChangeForm):
