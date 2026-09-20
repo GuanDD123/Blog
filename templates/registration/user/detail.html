@@ -59,7 +59,7 @@ document.querySelector('a.follow').addEventListener('click', function(e) {
                 // toggle button text and data-action
                 var action = previousAction === 'follow' ? 'unfollow' : 'follow';
                 followButton.dataset.action = action;
-                followButton.innerHTML = action === 'follow' ? 'unfollow' : 'follow';
+                followButton.innerHTML = action === 'follow' ? 'Follow' : 'Unfollow';
 
                 // update follow count
                 var followCount = document.querySelector('span.count .total');
