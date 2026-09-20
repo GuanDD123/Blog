@@ -5,7 +5,13 @@ Images bookmarked
 {% endblock %}
 
 {% block content %}
-<h1>Images bookmarked <a href="{% url 'images:create' %}">(Add Image)</a></h1>
+<h1>
+    Images bookmarked
+    <span>·</span>
+    <a href="{% url 'images:ranking' %}">(View Ranking)</a>
+    <span>·</span>
+    <a href="{% url 'images:create' %}">(Add Image)</a>
+</h1>
 <div id="image-list"> {% include "images/list_images.html" %} </div>
 {% endblock %}
 

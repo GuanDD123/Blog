@@ -1,3 +1,5 @@
+import redis
+from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
@@ -7,6 +9,13 @@ from actions.utils import create_action
 
 from .forms import ImageCreateForm, ImageURLForm
 from .models import Image
+
+r = redis.Redis(
+    host=settings.REDIS_HOST,
+    port=settings.REDIS_PORT,
+    db=settings.REDIS_DB,
+    password=settings.REDIS_PASSWORD,
+)
 
 
 class ImageCreateView(LoginRequiredMixin, CreateView):
@@ -33,7 +42,27 @@ class ImageCreateView(LoginRequiredMixin, CreateView):
 
 def image_detail(request, pk, slug):
     image = get_object_or_404(Image, pk=pk, slug=slug)
-    return render(request, "images/detail.html", {"section": "images", "image": image})
+    total_views = r.incr(f"image:{image.pk}:views")
+    r.zincrby("image_ranking", 1, image.pk)
+    return render(
+        request,
+        "images/detail.html",
+        {"section": "images", "image": image, "total_views": total_views},
+    )
+
+
+class ImageRankingView(ListView):
+    model = Image
+    context_object_name = "most_viewed"
+    template_name = "images/ranking.html"
+
+    def get_queryset(self):
+        image_ranking = r.zrange("image_ranking", 0, 9, desc=True)
+        image_ranking_pks = [int(pk) for pk in image_ranking]
+
+        most_viewed = list(Image.objects.filter(pk__in=image_ranking_pks))
+        most_viewed.sort(key=lambda image: image_ranking_pks.index(image.pk))
+        return most_viewed
 
 
 class ImageLikeView(View):

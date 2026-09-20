@@ -179,3 +179,8 @@ if DEBUG:
 
     mimetypes.add_type("application/javascript", ".js", True)
     mimetypes.add_type("text/css", ".css", True)
+
+REDIS_HOST = config("REDIS_HOST")
+REDIS_PORT = config("REDIS_PORT")
+REDIS_DB = config("REDIS_DB")
+REDIS_PASSWORD = config("REDIS_PASSWORD")
