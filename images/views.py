@@ -28,20 +28,20 @@ class ImageCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-def image_detail(request, id, slug):
-    image = get_object_or_404(Image, id=id, slug=slug)
+def image_detail(request, pk, slug):
+    image = get_object_or_404(Image, pk=pk, slug=slug)
     return render(request, "images/detail.html", {"section": "images", "image": image})
 
 
 class ImageLikeView(View):
     def post(self, request, *args, **kwargs):
-        image_id = request.POST.get("id")
+        image_pk = request.POST.get("pk")
         action = request.POST.get("action")
 
-        if not image_id or not action:
+        if not image_pk or not action:
             return JsonResponse({"status": "error"})
 
-        image = get_object_or_404(Image, id=image_id)
+        image = get_object_or_404(Image, pk=image_pk)
 
         if action == "like":
             image.users_like.add(request.user)

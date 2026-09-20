@@ -11,15 +11,15 @@
 {{ post.content|markdown }}
 <p>
     <button>
-        <a href="{% url 'blog:post_share' post.id %}">Share</a>
+        <a href="{% url 'blog:post_share' post.pk %}">Share</a>
     </button>
     <span>·</span>
     <button>
-        <a href="{% url 'blog:post_edit' post.id %}">Edit</a>
+        <a href="{% url 'blog:post_edit' post.pk %}">Edit</a>
     </button>
     <span>·</span>
     <button>
-        <a href="{% url 'blog:post_delete' post.id %}">Delete</a>
+        <a href="{% url 'blog:post_delete' post.pk %}">Delete</a>
     </button>
 </p>
 

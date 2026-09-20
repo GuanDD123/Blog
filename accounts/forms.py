@@ -37,7 +37,7 @@ class UserEditForm(forms.ModelForm):
     def clean_email(self):
         data = self.cleaned_data["email"]
         if (
-            self.Meta.model.objects.exclude(id=self.instance.id)
+            self.Meta.model.objects.exclude(pk=self.instance.pk)
             .filter(email=data)
             .exists()
         ):

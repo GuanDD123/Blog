@@ -59,10 +59,10 @@ class PostDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         context["section"] = "blog"
         context["comments"] = self.object.comments.filter(active=True)
-        post_tags_ids = self.object.tags.values_list("id", flat=True)
+        post_tags_pks = self.object.tags.values_list("pk", flat=True)
         similar_posts = (
-            Post.published.filter(tags__in=post_tags_ids)
-            .exclude(id=self.object.id)
+            Post.published.filter(tags__in=post_tags_pks)
+            .exclude(pk=self.object.pk)
             .annotate(same_tags=Count("tags"))
             .order_by("-same_tags", "-published_at")
         )
@@ -112,7 +112,7 @@ class PostShareView(LoginRequiredMixin, FormView):
     def dispatch(self, request, *args, **kwargs):
         self.post_obj = get_object_or_404(
             Post,
-            id=kwargs["post_id"],
+            pk=kwargs["pk"],
             status=Post.Status.PUBLISHED,
         )
         self.post_url = request.build_absolute_uri(self.post_obj.get_absolute_url())
@@ -152,7 +152,7 @@ class PostCommentView(LoginRequiredMixin, CreateView):
     def dispatch(self, request, *args, **kwargs):
         self.post_obj = get_object_or_404(
             Post,
-            id=kwargs["post_id"],
+            pk=kwargs["pk"],
             status=Post.Status.PUBLISHED,
         )
         return super().dispatch(request, *args, **kwargs)
