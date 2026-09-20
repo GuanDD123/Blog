@@ -1,9 +1,10 @@
 from django.contrib import messages
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, render
 from django.views import View
-from django.views.generic import CreateView
+from django.views.generic import CreateView, DetailView, ListView
 
 from .forms import ProfileEditForm, UserEditForm, UserRegistrationForm
 from .models import Profile
@@ -63,3 +64,29 @@ class EditView(LoginRequiredMixin, View):
                     "profile_form": profile_form,
                 },
             )
+
+
+class UserListView(LoginRequiredMixin, ListView):
+    model = get_user_model()
+    template_name = "registration/user/list.html"
+    context_object_name = "users"
+    paginate_by = 10
+
+    def get_queryset(self):
+        return super().get_queryset().filter(is_active=True)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["section"] = "people"
+        return context
+
+
+class UserDetailView(LoginRequiredMixin, DetailView):
+    model = get_user_model()
+    template_name = "registration/user/detail.html"
+    context_object_name = "user"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["section"] = "people"
+        return context
