@@ -19,9 +19,13 @@ class Image(models.Model):
     image = models.ImageField(upload_to="images/%Y/%m/%d/")
     description = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    total_likes = models.PositiveIntegerField(default=0)
 
     class Meta:
-        indexes = (models.Index(fields=["-created_at"]),)
+        indexes = (
+            models.Index(fields=["-created_at"]),
+            models.Index(fields=["-total_likes"]),
+        )
         ordering = ("-created_at",)
 
     def save(self, *args, **kwargs):
