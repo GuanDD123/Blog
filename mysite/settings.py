@@ -45,12 +45,14 @@ INSTALLED_APPS = [
     "django.contrib.postgres",
     "taggit",
     "easy_thumbnails",
+    "debug_toolbar",
     "blog.apps.BlogConfig",
     "images.apps.ImagesConfig",
     "actions.apps.ActionsConfig",
 ]
 
 MIDDLEWARE = [
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -167,3 +169,13 @@ AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     "accounts.authentication.EmailAuthBackend",
 ]
+
+INTERNAL_IPS = [
+    "127.0.0.1",
+]
+
+if DEBUG:
+    import mimetypes
+
+    mimetypes.add_type("application/javascript", ".js", True)
+    mimetypes.add_type("text/css", ".css", True)
