@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load thumbnail %}
 
 {% block title %}
 {{ image.title }}
@@ -7,7 +8,6 @@
 {% block content %}
 <h1>{{ image.title }}</h1>
 
-{% load thumbnail %}
 <a href="{{ image.image.url }}">
     <img src="{% thumbnail image.image 300x0 %}" class="image-detail">
 </a>
