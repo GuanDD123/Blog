@@ -3,6 +3,8 @@ from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.views.generic import CreateView, ListView, View
 
+from actions.utils import create_action
+
 from .forms import ImageCreateForm, ImageURLForm
 from .models import Image
 
@@ -25,6 +27,7 @@ class ImageCreateView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.user = self.request.user
+        create_action(self.request.user, "created image", form.instance)
         return super().form_valid(form)
 
 
@@ -45,8 +48,10 @@ class ImageLikeView(View):
 
         if action == "like":
             image.users_like.add(request.user)
+            create_action(request.user, "liked image", image)
         elif action == "unlike":
             image.users_like.remove(request.user)
+            create_action(request.user, "unliked image", image)
         else:
             return JsonResponse({"status": "error"})
 

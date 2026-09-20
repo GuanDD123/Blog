@@ -7,13 +7,28 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views import View
 from django.views.generic import CreateView, DetailView, ListView
 
+from actions.models import Action
+from actions.utils import create_action
+
 from .forms import ProfileEditForm, UserEditForm, UserRegistrationForm
 from .models import Contact, Profile
 
 
 @login_required
 def dashboard(request):
-    return render(request, "registration/dashboard.html", {"section": "dashboard"})
+    actions = Action.objects.exclude(user=request.user)
+    following_pks = request.user.following.values_list("pk", flat=True)
+    if following_pks:
+        actions = (
+            actions.filter(user_id__in=following_pks)
+            .select_related("user", "user__profile")
+            .prefetch_related("target")[:10]
+        )
+    return render(
+        request,
+        "registration/dashboard.html",
+        {"section": "dashboard", "actions": actions},
+    )
 
 
 class RegisterView(CreateView):
@@ -23,6 +38,7 @@ class RegisterView(CreateView):
     def form_valid(self, form):
         new_user = form.save()
         Profile.objects.create(user=new_user)
+        create_action(new_user, "created account")
         return render(
             self.request, "registration/register_done.html", {"new_user": new_user}
         )
@@ -105,8 +121,10 @@ class UserFollowView(LoginRequiredMixin, View):
 
         if action == "follow":
             Contact.objects.get_or_create(user_from=request.user, user_to=user)
+            create_action(request.user, "followed user", user)
         elif action == "unfollow":
             Contact.objects.filter(user_from=request.user, user_to=user).delete()
+            create_action(request.user, "unfollowed user", user)
         else:
             return JsonResponse({"status": "error"})
 

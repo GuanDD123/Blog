@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "easy_thumbnails",
     "blog.apps.BlogConfig",
     "images.apps.ImagesConfig",
+    "actions.apps.ActionsConfig",
 ]
 
 MIDDLEWARE = [
