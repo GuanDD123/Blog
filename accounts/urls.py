@@ -1,6 +1,13 @@
 from django.urls import include, path
 
-from .views import EditView, RegisterView, UserDetailView, UserListView, dashboard
+from .views import (
+    EditView,
+    RegisterView,
+    UserDetailView,
+    UserFollowView,
+    UserListView,
+    dashboard,
+)
 
 urlpatterns = [
     path("", dashboard, name="dashboard"),
@@ -9,4 +16,5 @@ urlpatterns = [
     path("edit/", EditView.as_view(), name="edit"),
     path("users/", UserListView.as_view(), name="user_list"),
     path("users/<int:pk>/", UserDetailView.as_view(), name="user_detail"),
+    path("users/follow/", UserFollowView.as_view(), name="user_follow"),
 ]

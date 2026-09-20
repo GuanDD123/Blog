@@ -2,12 +2,13 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import redirect, render
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.views import View
 from django.views.generic import CreateView, DetailView, ListView
 
 from .forms import ProfileEditForm, UserEditForm, UserRegistrationForm
-from .models import Profile
+from .models import Contact, Profile
 
 
 @login_required
@@ -90,3 +91,23 @@ class UserDetailView(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         context["section"] = "people"
         return context
+
+
+class UserFollowView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        user_pk = request.POST.get("pk")
+        action = request.POST.get("action")
+
+        if not user_pk or not action:
+            return JsonResponse({"status": "error"})
+
+        user = get_object_or_404(get_user_model(), pk=user_pk)
+
+        if action == "follow":
+            Contact.objects.get_or_create(user_from=request.user, user_to=user)
+        elif action == "unfollow":
+            Contact.objects.filter(user_from=request.user, user_to=user).delete()
+        else:
+            return JsonResponse({"status": "error"})
+
+        return JsonResponse({"status": "ok"})
