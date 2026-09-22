@@ -75,8 +75,8 @@ class PostDetailView(DetailView):
 class PostCreateView(LoginRequiredMixin, CreateView):
     model = Post
     context_object_name = "post"
-    template_name = "blog/new.html"
     fields = ("title", "content", "published_at", "status", "tags")
+    template_name = "blog/new.html"
 
     def form_valid(self, form):
         form.instance.author = self.request.user
@@ -86,8 +86,8 @@ class PostCreateView(LoginRequiredMixin, CreateView):
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Post
     context_object_name = "post"
-    template_name = "blog/edit.html"
     fields = ("title", "content", "published_at", "status", "tags")
+    template_name = "blog/edit.html"
 
     def test_func(self):
         post = self.get_object()
