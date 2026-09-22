@@ -32,8 +32,8 @@ def dashboard(request):
 
 
 class RegisterView(CreateView):
-    template_name = "registration/register.html"
     form_class = UserRegistrationForm
+    template_name = "registration/register.html"
 
     def form_valid(self, form):
         new_user = form.save()
@@ -85,8 +85,8 @@ class EditView(LoginRequiredMixin, View):
 
 class UserListView(LoginRequiredMixin, ListView):
     model = get_user_model()
-    template_name = "registration/user/list.html"
     context_object_name = "users"
+    template_name = "registration/user/list.html"
     paginate_by = 10
 
     def get_queryset(self):
@@ -100,8 +100,8 @@ class UserListView(LoginRequiredMixin, ListView):
 
 class UserDetailView(LoginRequiredMixin, DetailView):
     model = get_user_model()
-    template_name = "registration/user/detail.html"
     context_object_name = "user"
+    template_name = "registration/user/detail.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

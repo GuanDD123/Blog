@@ -14,13 +14,13 @@ from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from taggit.models import Tag
 
 from .forms import CommentForm, EmailPostForm, SearchForm
-from .models import Post
+from .models import Comment, Post
 
 
 class PostListView(ListView):
     model = Post
-    template_name = "blog/list.html"
     context_object_name = "posts"
+    template_name = "blog/list.html"
     paginate_by = 3
 
     def get_queryset(self):
@@ -44,8 +44,8 @@ class PostListView(ListView):
 
 class PostDetailView(DetailView):
     model = Post
-    template_name = "blog/detail.html"
     context_object_name = "post"
+    template_name = "blog/detail.html"
     slug_url_kwarg = "slug"
 
     def get_queryset(self):
@@ -74,8 +74,8 @@ class PostDetailView(DetailView):
 
 class PostCreateView(LoginRequiredMixin, CreateView):
     model = Post
-    template_name = "blog/new.html"
     context_object_name = "post"
+    template_name = "blog/new.html"
     fields = ("title", "content", "published_at", "status", "tags")
 
     def form_valid(self, form):
@@ -85,8 +85,8 @@ class PostCreateView(LoginRequiredMixin, CreateView):
 
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Post
-    template_name = "blog/edit.html"
     context_object_name = "post"
+    template_name = "blog/edit.html"
     fields = ("title", "content", "published_at", "status", "tags")
 
     def test_func(self):
@@ -96,8 +96,8 @@ class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 
 class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Post
-    template_name = "blog/delete.html"
     context_object_name = "post"
+    template_name = "blog/delete.html"
     success_url = reverse_lazy("blog:post_list")
 
     def test_func(self):
@@ -106,8 +106,8 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 
 
 class PostShareView(LoginRequiredMixin, FormView):
-    template_name = "blog/share.html"
     form_class = EmailPostForm
+    template_name = "blog/share.html"
 
     def dispatch(self, request, *args, **kwargs):
         self.post_obj = get_object_or_404(
@@ -146,8 +146,9 @@ class PostShareView(LoginRequiredMixin, FormView):
 
 
 class PostCommentView(LoginRequiredMixin, CreateView):
-    template_name = "blog/comment.html"
+    model = Comment
     form_class = CommentForm
+    template_name = "blog/comment.html"
 
     def dispatch(self, request, *args, **kwargs):
         self.post_obj = get_object_or_404(
@@ -174,8 +175,8 @@ class PostCommentView(LoginRequiredMixin, CreateView):
 
 
 class PostSearch(View):
-    template_name = "blog/search.html"
     form_class = SearchForm
+    template_name = "blog/search.html"
 
     def get(self, request, *args, **kwargs):
         form = self.form_class(request.GET or None)
@@ -205,8 +206,8 @@ class PostSearch(View):
 
 
 class PostSearchTrigramSimilarity(View):
-    template_name = "blog/search.html"
     form_class = SearchForm
+    template_name = "blog/search.html"
 
     def get(self, request, *args, **kwargs):
         form = self.form_class(request.GET or None)
