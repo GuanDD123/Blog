@@ -5,15 +5,16 @@ Dashboard
 {% endblock %}
 
 {% block content %}
-<h1>Dashboard</h1>
-<p>
-  Welcome to your dashboard.
-  You can <a href="{% url 'edit' %}">edit your profile</a> or <a href="{% url 'password_change' %}">change your password</a>.
-</p>
-<h2>What's happening</h2>
-<div id="action-list">
-  {% for action in actions %}
-    {% include "actions/detail.html" %}
-  {% endfor %}
+<div id="content">
+  <h1>Dashboard</h1>
+  <p>
+    Welcome to your dashboard. You can <a href="{% url 'edit' %}">edit your profile</a> or <a href="{% url 'password_change' %}">change your password</a>.
+  </p>
+  <h2>What's happening</h2>
+  <div id="action-list">
+    {% for action in actions %}
+      {% include "actions/detail.html" %}
+    {% endfor %}
+  </div>
 </div>
 {% endblock %}

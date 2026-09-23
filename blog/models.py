@@ -19,11 +19,11 @@ class Post(models.Model):
         DRAFT = ("DF", "Draft")
         PUBLISHED = ("PB", "Published")
 
-    title = models.CharField(max_length=200)
-    slug = models.SlugField(max_length=200, unique_for_date="published_at")
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="blog_posts"
     )
+    title = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=200, unique_for_date="published_at")
     content = models.TextField()
     published_at = models.DateTimeField(default=timezone.now)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -33,17 +33,17 @@ class Post(models.Model):
     )
     tags = TaggableManager()
 
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.title)
-        super().save(*args, **kwargs)
-
     class Meta:
         ordering = ("-published_at",)
         indexes = (models.Index(fields=["-published_at"]),)
 
     def __str__(self):
         return self.title
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
 
     def get_absolute_url(self):
         return reverse(
@@ -59,8 +59,12 @@ class Post(models.Model):
 
 class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
-    name = models.CharField(max_length=100)
-    email = models.EmailField()
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="blog_comments",
+        null=True,
+    )
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -71,4 +75,4 @@ class Comment(models.Model):
         indexes = (models.Index(fields=["created_at"]),)
 
     def __str__(self):
-        return f"Comment by {self.name} on {self.post}"
+        return self.content

@@ -16,7 +16,7 @@ class PostAdmin(admin.ModelAdmin):
     list_filter = ("status", "created_at", "updated_at", "published_at", "author")
     search_fields = ("title", "content")
     date_hierarchy = "published_at"
-    ordering = ("status", "published_at")
+    ordering = ("status", "-published_at")
     prepopulated_fields: ClassVar[dict[str, tuple[str, ...]]] = {"slug": ("title",)}
     autocomplete_fields = ("author",)
     inlines = (CommentInline,)
@@ -24,6 +24,6 @@ class PostAdmin(admin.ModelAdmin):
 
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
-    list_display = ("name", "email", "post", "created_at", "active")
+    list_display = ("user", "post", "created_at", "active")
     list_filter = ("active", "created_at", "updated_at")
-    search_fields = ("name", "email", "content")
+    search_fields = ("user", "content")

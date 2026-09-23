@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}
+Delete
+{% endblock %}
+
+{% block content %}
+<div id="content">
+  <h1>Delete Image</h1>
+  <form method="post">
+    {% csrf_token %}
+    <p>Are you sure you want to delete "{{ image.title }}"?</p>
+    <button type="submit">
+      Confirm
+    </button>
+  </form>
+</div>
+{% endblock content %}

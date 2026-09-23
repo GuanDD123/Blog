@@ -7,8 +7,8 @@ from .views import (
     PostDeleteView,
     PostDetailView,
     PostListView,
-    PostSearch,
-    PostSearchTrigramSimilarity,
+    PostSearchTrigramSimilarityView,
+    PostSearchView,
     PostShareView,
     PostUpdateView,
 )
@@ -28,10 +28,10 @@ urlpatterns = [
     path("<int:pk>/share/", PostShareView.as_view(), name="post_share"),
     path("<int:pk>/comment/", PostCommentView.as_view(), name="post_comment"),
     path("feed/", LatestPostsFeed(), name="post_feed"),
-    path("search/", PostSearch.as_view(), name="post_search"),
+    path("search/", PostSearchView.as_view(), name="post_search"),
     path(
         "search/trigram/",
-        PostSearchTrigramSimilarity.as_view(),
+        PostSearchTrigramSimilarityView.as_view(),
         name="post_search_trigram",
     ),
 ]

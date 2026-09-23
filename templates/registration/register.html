@@ -5,11 +5,15 @@ Create an account
 {% endblock %}
 
 {% block content %}
-<h1>Create an account</h1>
-<p>Please, sign up using the following form:</p>
-<form method="post">
+<div id="content">
+  <h1>Create an account</h1>
+  <p>Please, sign up using the following form:</p>
+  <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
-    <input type="submit" value="Create my account">
-</form>
+    <button type="submit">
+      Create my account
+    </button>
+  </form>
+</div>
 {% endblock %}

@@ -9,6 +9,7 @@ from django.views.generic import CreateView, DetailView, ListView
 
 from actions.models import Action
 from actions.utils import create_action
+from blog.models import Post
 
 from .forms import ProfileEditForm, UserEditForm, UserRegistrationForm
 from .models import Contact, Profile
@@ -106,6 +107,10 @@ class UserDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["section"] = "people"
+        context["user_images"] = self.object.images_created.all()
+        context["user_posts"] = self.object.blog_posts.filter(
+            status=Post.Status.PUBLISHED
+        )
         return context
 
 

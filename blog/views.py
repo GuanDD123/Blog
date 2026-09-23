@@ -7,13 +7,21 @@ from django.contrib.postgres.search import (
 )
 from django.core.mail import send_mail
 from django.db.models import Count
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
-from django.views.generic import DetailView, FormView, ListView, View
+from django.views.generic import DetailView, FormView, ListView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from taggit.models import Tag
 
-from .forms import CommentForm, EmailPostForm, SearchForm
+from actions.utils import create_action
+
+from .forms import (
+    CommentForm,
+    PostCreateForm,
+    PostSearchForm,
+    PostShareForm,
+    PostUpdateForm,
+)
 from .models import Comment, Post
 
 
@@ -39,6 +47,7 @@ class PostListView(ListView):
         context = super().get_context_data(**kwargs)
         context["section"] = "blog"
         context["tag"] = self.tag
+        context["page"] = context["page_obj"]
         return context
 
 
@@ -59,9 +68,11 @@ class PostDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         context["section"] = "blog"
         context["comments"] = self.object.comments.filter(active=True)
-        post_tags_pks = self.object.tags.values_list("pk", flat=True)
+
         similar_posts = (
-            Post.published.filter(tags__in=post_tags_pks)
+            Post.published.filter(
+                tags__in=self.object.tags.values_list("pk", flat=True)
+            )
             .exclude(pk=self.object.pk)
             .annotate(same_tags=Count("tags"))
             .order_by("-same_tags", "-published_at")
@@ -75,23 +86,29 @@ class PostDetailView(DetailView):
 class PostCreateView(LoginRequiredMixin, CreateView):
     model = Post
     context_object_name = "post"
-    fields = ("title", "content", "published_at", "status", "tags")
+    form_class = PostCreateForm
     template_name = "blog/new.html"
 
     def form_valid(self, form):
         form.instance.author = self.request.user
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        create_action(self.request.user, "created post", self.object)
+        return response
 
 
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Post
     context_object_name = "post"
-    fields = ("title", "content", "published_at", "status", "tags")
+    form_class = PostUpdateForm
     template_name = "blog/edit.html"
 
     def test_func(self):
-        post = self.get_object()
-        return self.request.user == post.author
+        return self.request.user == self.get_object().author
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        create_action(self.request.user, "updated post", self.object)
+        return response
 
 
 class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
@@ -101,12 +118,16 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     success_url = reverse_lazy("blog:post_list")
 
     def test_func(self):
-        post = self.get_object()
-        return self.request.user == post.author
+        return self.request.user == self.get_object().author
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        create_action(request.user, "deleted post", self.object)
+        return super().delete(request, *args, **kwargs)
 
 
 class PostShareView(LoginRequiredMixin, FormView):
-    form_class = EmailPostForm
+    form_class = PostShareForm
     template_name = "blog/share.html"
 
     def dispatch(self, request, *args, **kwargs):
@@ -120,6 +141,12 @@ class PostShareView(LoginRequiredMixin, FormView):
         self.recipient = None
         return super().dispatch(request, *args, **kwargs)
 
+    def get_initial(self):
+        initial = super().get_initial()
+        initial["username"] = self.request.user.username
+        initial["email"] = self.request.user.email
+        return initial
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["post"] = self.post_obj
@@ -129,10 +156,10 @@ class PostShareView(LoginRequiredMixin, FormView):
 
     def form_valid(self, form):
         cd = form.cleaned_data
-        subject = f"{cd['name']} ({cd['email']})"
+        subject = f"{cd['username']} ({cd['email']})"
         message = (
             f"Read {self.post_obj.title} at {self.post_url}\n\n"
-            f"{cd['name']}'s message: {cd['message']}"
+            f"{cd['username']}'s message: {cd['message']}"
         )
         send_mail(
             subject=subject,
@@ -147,6 +174,7 @@ class PostShareView(LoginRequiredMixin, FormView):
 
 class PostCommentView(LoginRequiredMixin, CreateView):
     model = Comment
+    context_object_name = "comment"
     form_class = CommentForm
     template_name = "blog/comment.html"
 
@@ -166,28 +194,31 @@ class PostCommentView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.post = self.post_obj
-        form.instance.name = self.request.user.username
-        form.instance.email = self.request.user.email
-        return super().form_valid(form)
+        form.instance.user = self.request.user
+
+        response = super().form_valid(form)
+        create_action(
+            self.request.user, f"commented {self.post_obj.title}", self.object
+        )
+        return response
 
     def get_success_url(self):
         return self.post_obj.get_absolute_url()
 
 
-class PostSearch(View):
-    form_class = SearchForm
+class PostSearchView(ListView):
+    model = Post
+    context_object_name = "posts"
     template_name = "blog/search.html"
+    paginate_by = 5
 
-    def get(self, request, *args, **kwargs):
-        form = self.form_class(request.GET or None)
-
-        if form.is_valid():
-            cd = form.cleaned_data
-
+    def get_queryset(self):
+        query = self.request.GET.get("query")
+        if query:
             search_vector = SearchVector(
                 "title", weight="A", config="english"
             ) + SearchVector("content", weight="B", config="english")
-            search_query = SearchQuery(cd["query"], config="english")
+            search_query = SearchQuery(query, config="english")
             results = (
                 Post.published.annotate(
                     search=search_vector, rank=SearchRank(search_vector, search_query)
@@ -195,38 +226,25 @@ class PostSearch(View):
                 .filter(rank__gte=0.1)
                 .order_by("-rank")
             )
+            return results
+        return Post.published.none()
 
-            return render(
-                request,
-                self.template_name,
-                {"query": cd["query"], "results": results, "section": "blog"},
-            )
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["section"] = "blog"
+        context["search_form"] = PostSearchForm(self.request.GET or None)
+        context["query"] = self.request.GET.get("query")
+        return context
 
-        return render(request, self.template_name, {"form": form, "section": "blog"})
 
-
-class PostSearchTrigramSimilarity(View):
-    form_class = SearchForm
-    template_name = "blog/search.html"
-
-    def get(self, request, *args, **kwargs):
-        form = self.form_class(request.GET or None)
-
-        if form.is_valid():
-            cd = form.cleaned_data
-
+class PostSearchTrigramSimilarityView(PostSearchView):
+    def get_queryset(self):
+        query = self.request.GET.get("query")
+        if query:
             results = (
-                Post.published.annotate(
-                    similarity=TrigramSimilarity("title", cd["query"])
-                )
+                Post.published.annotate(similarity=TrigramSimilarity("title", query))
                 .filter(similarity__gt=0.1)
                 .order_by("-similarity")
             )
-
-            return render(
-                request,
-                self.template_name,
-                {"query": cd["query"], "results": results, "section": "blog"},
-            )
-
-        return render(request, self.template_name, {"form": form, "section": "blog"})
+            return results
+        return Post.published.none()

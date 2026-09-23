@@ -6,19 +6,21 @@ People
 {% endblock %}
 
 {% block content %}
-<h1>People</h1>
-<div id="people-list">
+<div id="content">
+  <h1>People</h1>
+  <div id="people-list">
     {% for user in users %}
-    <div class="user">
+      <div class="user">
         <a href="{{ user.get_absolute_url }}">
-            <img src="{% thumbnail user.profile.photo 180x180 %}">
+          <img src="{% thumbnail user.profile.photo 180x180 %}">
         </a>
         <div class="info">
-            <a href="{{ user.get_absolute_url }}" class="title">
-                {{ user.username }}
-            </a>
+          <a href="{{ user.get_absolute_url }}" class="title">
+            {{ user.username }}
+          </a>
         </div>
-    </div>
+      </div>
     {% endfor %}
+  </div>
 </div>
 {% endblock %}

@@ -5,10 +5,14 @@ Delete
 {% endblock %}
 
 {% block content %}
-<h1>Delete Blog</h1>
-<form method="post">
+<div id="content">
+  <h1>Delete Blog</h1>
+  <form method="post">
     {% csrf_token %}
     <p>Are you sure you want to delete "{{ post.title }}"?</p>
-    <input type="submit" value="Confirm">
-</form>
+    <button type="submit">
+      Confirm
+    </button>
+  </form>
+</div>
 {% endblock content %}

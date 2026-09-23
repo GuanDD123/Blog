@@ -5,10 +5,14 @@ Edit
 {% endblock %}
 
 {% block content %}
-<h1>Edit Blog Post</h1>
-<form method="post">
+<div id="content">
+  <h1>Edit Blog Post</h1>
+  <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
-    <input type="submit" value="Update">
-</form>
+    <button type="submit">
+      Update
+    </button>
+  </form>
+</div>
 {% endblock content %}

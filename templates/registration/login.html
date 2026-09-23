@@ -5,26 +5,29 @@ Log-in
 {% endblock %}
 
 {% block content %}
-<h1>Log-in</h1>
-
-{% if form.errors %}
-<p>Your username and password didn't match. Please try again.</p>
-{% else %}
-<p>
-    Please, use the following form to log-in.
-    If you don't have an account, you can <a href="{% url 'register' %}">register</a>.
-</p>
-{% endif %}
-
-<div class="login-form">
+<div id="content">
+  <h1>Log-in</h1>
+  {% if form.errors %}
+    <p>Your username and password didn't match. Please try again.</p>
+  {% else %}
+  <p>
+    Please, use the following form to log-in. If you don't have an account, you can <a href="{% url 'register' %}">register</a>.
+  </p>
+  {% endif %}
+  <div class="login-form">
     <form action="{% url 'login' %}" method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <input type="hidden" name="next" value="{{ next }}">
-        <input type="submit" value="Log-in">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <input type="hidden" name="next" value="{{ next }}">
+      <button type="submit">
+        Log-in
+      </button>
     </form>
     <p>
-        <a href="{% url 'password_reset' %}">Forget your password?</a>
+      <a href="{% url 'password_reset' %}">
+        Forget your password?
+      </a>
     </p>
+  </div>
 </div>
 {% endblock %}

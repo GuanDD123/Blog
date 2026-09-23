@@ -6,46 +6,65 @@
 {% endblock %}
 
 {% block content %}
-<h1>{{ post.title }}</h1>
-<p class="date">Published {{ post.published_at }} by {{ post.author }}</p>
-{{ post.content|markdown }}
-<p>
+<div id="content">
+  <h1>{{ post.title }}</h1>
+  <p class="date">
+    Published {{ post.published_at }} by {{ post.author }}
+  </p>
+  {{ post.content|markdown }}
+  <p>
     <button>
-        <a href="{% url 'blog:post_share' post.pk %}">Share</a>
+      <a href="{% url 'blog:post_share' post.pk %}">
+        Share
+      </a>
     </button>
-    <span>·</span>
-    <button>
-        <a href="{% url 'blog:post_edit' post.pk %}">Edit</a>
-    </button>
-    <span>·</span>
-    <button>
-        <a href="{% url 'blog:post_delete' post.pk %}">Delete</a>
-    </button>
-</p>
+    {% if user == post.author %}
+      <span>·</span>
+      <button>
+        <a href="{% url 'blog:post_edit' post.pk %}">
+          Edit
+        </a>
+      </button>
+      <span>·</span>
+      <button>
+        <a href="{% url 'blog:post_delete' post.pk %}">
+          Delete
+        </a>
+      </button>
+    {% endif %}
+  </p>
 
-<h2>Similar Posts</h2>
-{% for similar_post in similar_posts %}
-<p>
-    <a href="{{ similar_post.get_absolute_url }}">{{ similar_post.title }}</a>
-</p>
-{% empty %}
-<p>No similar posts found.</p>
-{% endfor %}
+  {% with comments.count as comments_count %}
+    <h2>
+      {{ comments_count }} comment{{ comments_count|pluralize }}
+    </h2>
+  {% endwith %}
+  {% for comment in comments %}
+    <div class="comment">
+      <p class="info">
+        Comment {{ forloop.counter }} by {{ comment.user.username }} {{ comment.created_at }}
+      </p>
+      {{ comment.content|linebreaks }}
+    </div>
+    {% empty %}
+    <p>There are no comments.</p>
+  {% endfor %}
 
-{% with comments.count as total_comments %}
-<h2>{{ total_comments }} comment{{ total_comments|pluralize }}</h2>
-{% endwith %}
-{% for comment in comments %}
-<div class="comment">
-    <p class="info">
-        Comment {{ forloop.counter }} by {{ comment.name }} {{ comment.created_at }}
+  <h2>Similar Posts</h2>
+  {% for similar_post in similar_posts %}
+    <p>
+      <a href="{{ similar_post.get_absolute_url }}">
+        {{ similar_post.title }}
+      </a>
     </p>
-    {{ comment.content|linebreaks }}
+  {% empty %}
+    <p>
+      No similar posts found.
+    </p>
+  {% endfor %}
+
+  {% include "blog/include/comment_form.html" %}
 </div>
-{% empty %}
-<p>There are no comments.</p>
-{% endfor %}
-{% include "blog/include/comment_form.html" %}
 {% endblock %}
 
 {% block sidebar %}
