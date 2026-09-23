@@ -226,6 +226,7 @@ class PostSearchView(ListView):
                 .filter(rank__gte=0.1)
                 .order_by("-rank")
             )
+            self.post_count = results.count()
             return results
         return Post.published.none()
 
@@ -234,6 +235,8 @@ class PostSearchView(ListView):
         context["section"] = "blog"
         context["search_form"] = PostSearchForm(self.request.GET or None)
         context["query"] = self.request.GET.get("query")
+        context["page"] = context["page_obj"]
+        context["post_count"] = self.post_count
         return context
 
 

@@ -18,9 +18,7 @@ Search
   {% if query %}
     <h1>Posts containing "{{ query }}"</h1>
     <h3>
-      {% with posts.count as total_results %}
-        Found {{ total_results }} result{{ total_results|pluralize }}
-      {% endwith %}
+      Found {{ post_count }} result{{ post_count|pluralize }}
     </h3>
     {% for post in posts %}
       <h4>
@@ -34,6 +32,7 @@ Search
         There are no results for your query.
       </p>
     {% endfor %}
+    {% include "pagination.html" %}
   {% endif %}
 </div>
 {% endblock %}
