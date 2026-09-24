@@ -108,10 +108,21 @@ class UserDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["section"] = "people"
-        context["user_images"] = self.object.images_created.all()
-        context["user_posts"] = self.object.blog_posts.filter(
-            status=Post.Status.PUBLISHED
-        )
+
+        category = self.request.GET.get("category")
+        if not category or category == "all":
+            context["user_images"] = self.object.images_created.all()
+            context["user_posts"] = self.object.blog_posts.filter(
+                status=Post.Status.PUBLISHED
+            )
+        elif category == "images":
+            context["user_images"] = self.object.images_created.all()
+            context["user_posts"] = None
+        elif category == "posts":
+            context["user_images"] = None
+            context["user_posts"] = self.object.blog_posts.filter(
+                status=Post.Status.PUBLISHED
+            )
         return context
 
 

@@ -7,10 +7,12 @@
 
 {% block content %}
 <div id="content">
-  <h1>{{ user.username }}</h1>
-  <div class="profile-info">
-    <img src="{% thumbnail user.profile.photo 180x180 %}" class="user-detail">
-  </div>
+  <h1>
+    <div class="profile-info">
+      <img src="{% thumbnail user.profile.photo 180x180 %}" class="user-detail">
+    </div>
+    {{ user.username }}
+  </h1>
   {% with total_followers=user.followers.count %}
     <span class="count">
       <span class="total">
@@ -26,12 +28,34 @@
       {% endif %}
     </a>
   {% endwith %}
+  {% if user_images %}
   <div id="image-list" class="image-container">
     {% include "images/include/list_images.html" with images=user_images %}
   </div>
+  {% endif %}
+  {% if user_posts %}
   <div>
     {% include "blog/include/list_posts.html" with posts=user_posts %}
   </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block sidebar %}
+<div id="sidebar">
+  <h3>Categories</h3>
+    <ul>
+      <li>
+        <a href="?category=all">All</a>
+      </li>
+      <li>
+        <a href="?category=images">Images</a>
+      </li>
+      <li>
+        <a href="?category=posts">Posts</a>
+      </li>
+    </ul>
+    </p>
 </div>
 {% endblock %}
 
