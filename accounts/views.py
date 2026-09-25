@@ -12,6 +12,7 @@ from blog.models import Post
 
 from .forms import ProfileEditForm, UserEditForm, UserRegistrationForm
 from .models import Contact, Profile
+from .tasks import user_registed
 
 
 class DashBoard(LoginRequiredMixin, ListView):
@@ -48,6 +49,7 @@ class RegisterView(CreateView):
 
         Profile.objects.create(user=new_user)
         create_action(new_user, "created account")
+        user_registed.delay(new_user.pk)
 
         return render(self.request, "registration/register_done.html")
 
