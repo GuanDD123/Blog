@@ -9,7 +9,7 @@ register = template.Library()
 
 
 @register.simple_tag
-def total_posts():
+def posts_published_count():
     return Post.published.count()
 
 

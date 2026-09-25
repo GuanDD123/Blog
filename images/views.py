@@ -50,16 +50,13 @@ class ImageDetailView(DetailView):
     context_object_name = "image"
     template_name = "images/detail.html"
 
-    def get_object(self, queryset=None):
-        return get_object_or_404(Image, pk=self.kwargs["pk"], slug=self.kwargs["slug"])
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context["section"] = "images"
 
         total_views = r.incr(f"image:{self.object.pk}:views")
         r.zincrby("image_ranking", 1, self.object.pk)
 
-        context["section"] = "images"
         context["total_views"] = total_views
 
         return context
@@ -93,7 +90,7 @@ class ImageCreateView(LoginRequiredMixin, CreateView):
 
     def get_initial(self):
         initial = super().get_initial()
-        initial["url"] = self.request.GET.get("url", "")
+        initial["url"] = self.request.GET.get("url")
         return initial
 
     def get_context_data(self, **kwargs):

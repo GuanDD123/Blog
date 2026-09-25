@@ -51,17 +51,17 @@
   {% endfor %}
 
   <h2>Similar Posts</h2>
-  {% for similar_post in similar_posts %}
-    <p>
-      <a href="{{ similar_post.get_absolute_url }}">
-        {{ similar_post.title }}
-      </a>
-    </p>
-  {% empty %}
-    <p>
-      No similar posts found.
-    </p>
-  {% endfor %}
+  <ul>
+    {% for similar_post in similar_posts %}
+      <li>
+        <a href="{{ similar_post.get_absolute_url }}">
+          {{ similar_post.title }}
+        </a>
+      </li>
+    {% empty %}
+      <p>No similar posts found.</p>
+    {% endfor %}
+  </ul>
 
   {% include "blog/include/comment_form.html" %}
 </div>

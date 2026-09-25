@@ -3,8 +3,8 @@
 {% with user=action.user profile=action.user.profile %}
 <div class="action">
   <div class="images">
-    {% if profile.photo %}
-      {% thumbnail user.profile.photo "80x80" crop="100%" as im %}
+    {% if profile.avatar %}
+      {% thumbnail user.profile.avatar "80x80" crop="100%" as im %}
       <a href="{{ user.get_absolute_url }}">
         <img src="{{ im.url }}" alt="{{ user.username }}" class="item-img">
       </a>

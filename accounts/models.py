@@ -12,16 +12,22 @@ class CustomUser(AbstractUser):
         symmetrical=False,
     )
 
+    class Meta:
+        ordering = ("username",)
+
+    def __str__(self):
+        return self.username
+
     def get_absolute_url(self):
         return reverse("user_detail", kwargs={"pk": self.pk})
 
 
 class Contact(models.Model):
     user_from = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="rel_from_set"
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="contacts_from"
     )
     user_to = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="rel_to_set"
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="contacts_to"
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -36,7 +42,7 @@ class Contact(models.Model):
 class Profile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     date_of_birth = models.DateField(blank=True, null=True)
-    photo = models.ImageField(upload_to="users/%Y/%m/%d", blank=True)
+    avatar = models.ImageField(upload_to="users/%Y/%m/%d", blank=True)
 
     def __str__(self):
         return f"{self.user.username}'s profile"

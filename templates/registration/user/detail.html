@@ -9,34 +9,34 @@
 <div id="content">
   <h1>
     <div class="profile-info">
-      <img src="{% thumbnail user.profile.photo 180x180 %}" class="user-detail">
+      <img src="{% thumbnail user.profile.avatar 180x180 %}" class="user-detail">
     </div>
     {{ user.username }}
   </h1>
-  {% with total_followers=user.followers.count %}
-    <span class="count">
+  <span class="count">
+    {% with followers_count=user.followers.count %}
       <span class="total">
-        {{ total_followers }}
+        {{ followers_count }}
       </span>
-      follower{{ total_followers|pluralize }}
-    </span>
-    <a href="#" data-pk="{{ user.pk }}" data-action="{% if request.user in user.followers.all %}un{% endif %}follow" class="follow button">
-      {% if request.user not in user.followers.all %}
-        Follow
-      {% else %}
-        Unfollow
-      {% endif %}
-    </a>
-  {% endwith %}
+      follower{{ followers_count|pluralize }}
+    {% endwith %}
+  </span>
+  <a href="#" data-pk="{{ user.pk }}" data-action="{% if request.user in user.followers.all %}un{% endif %}follow" class="follow button">
+    {% if request.user not in user.followers.all %}
+      Follow
+    {% else %}
+      Unfollow
+    {% endif %}
+  </a>
   {% if user_images %}
-  <div id="image-list" class="image-container">
-    {% include "images/include/list_images.html" with images=user_images %}
-  </div>
+    <div id="image-list" class="image-container">
+      {% include "images/include/list_images.html" with images=user_images %}
+    </div>
   {% endif %}
   {% if user_posts %}
-  <div>
-    {% include "blog/include/list_posts.html" with posts=user_posts %}
-  </div>
+    <div>
+      {% include "blog/include/list_posts.html" with posts=user_posts %}
+    </div>
   {% endif %}
 </div>
 {% endblock %}
@@ -44,18 +44,17 @@
 {% block sidebar %}
 <div id="sidebar">
   <h3>Categories</h3>
-    <ul>
-      <li>
-        <a href="?category=all">All</a>
-      </li>
-      <li>
-        <a href="?category=images">Images</a>
-      </li>
-      <li>
-        <a href="?category=posts">Posts</a>
-      </li>
-    </ul>
-    </p>
+  <ul>
+    <li>
+      <a href="?category=all">All</a>
+    </li>
+    <li>
+      <a href="?category=images">Images</a>
+    </li>
+    <li>
+      <a href="?category=posts">Posts</a>
+    </li>
+  </ul>
 </div>
 {% endblock %}
 

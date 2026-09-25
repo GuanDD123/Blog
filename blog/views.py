@@ -34,8 +34,7 @@ class PostListView(ListView):
     def get_queryset(self):
         queryset = Post.published.all()
 
-        tag_slug = self.kwargs.get("tag_slug")
-        if tag_slug:
+        if tag_slug := self.kwargs.get("tag_slug"):
             self.tag = get_object_or_404(Tag, slug=tag_slug)
             queryset = queryset.filter(tags__in=[self.tag])
         else:
@@ -227,8 +226,10 @@ class PostSearchView(ListView):
                 .order_by("-rank")
             )
             self.post_count = results.count()
-            return results
-        return Post.published.none()
+        else:
+            results = Post.published.none()
+            self.post_count = 0
+        return results
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -249,5 +250,8 @@ class PostSearchTrigramSimilarityView(PostSearchView):
                 .filter(similarity__gt=0.1)
                 .order_by("-similarity")
             )
-            return results
-        return Post.published.none()
+            self.post_count = results.count()
+        else:
+            results = Post.published.none()
+            self.post_count = 0
+        return results

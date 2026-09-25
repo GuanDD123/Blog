@@ -14,17 +14,17 @@ class Image(models.Model):
         settings.AUTH_USER_MODEL, related_name="images_liked", blank=True
     )
     title = models.CharField(max_length=200)
-    slug = models.SlugField(max_length=200, blank=True)
+    slug = models.SlugField(max_length=200)
     url = models.URLField(max_length=2000)
     image = models.ImageField(upload_to="images/%Y/%m/%d/")
     description = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    total_likes = models.PositiveIntegerField(default=0)
+    users_like_count = models.PositiveIntegerField(default=0)
 
     class Meta:
         indexes = (
             models.Index(fields=["-created_at"]),
-            models.Index(fields=["-total_likes"]),
+            models.Index(fields=["-users_like_count"]),
         )
         ordering = ("-created_at",)
 

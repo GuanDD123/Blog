@@ -11,3 +11,4 @@ class ImageAdmin(admin.ModelAdmin):
     list_filter = ("created_at",)
     search_fields = ("title", "description")
     prepopulated_fields: ClassVar[dict[str, tuple[str, ...]]] = {"slug": ("title",)}
+    autocomplete_fields = ("user",)

@@ -12,12 +12,12 @@ class Action(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     target_ct = models.ForeignKey(
         ContentType,
-        blank=True,
-        null=True,
         on_delete=models.CASCADE,
         related_name="target_obj",
+        blank=True,
+        null=True,
     )
-    target_pk = models.PositiveIntegerField(null=True, blank=True)
+    target_pk = models.PositiveIntegerField(blank=True, null=True)
     target = GenericForeignKey("target_ct", "target_pk")
 
     class Meta:
