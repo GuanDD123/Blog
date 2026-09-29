@@ -24,12 +24,12 @@ class CustomUserAdmin(UserAdmin):
     fieldsets = UserAdmin.fieldsets + (
         ("Relationships", {"fields": ("following_list",)}),
     )
+    readonly_fields = ("following_list",)
 
+    @admin.display(description="Following")
     def following_list(self, obj):
         return ", ".join(user.username for user in obj.following.all())
 
-    following_list.short_description = "Following"
-    readonly_fields = ("following_list",)
 
 
 @admin.register(Profile)
