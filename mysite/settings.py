@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "taggit",
     "easy_thumbnails",
     "debug_toolbar",
+    "redisboard",
     "blog.apps.BlogConfig",
     "images.apps.ImagesConfig",
     "actions.apps.ActionsConfig",
