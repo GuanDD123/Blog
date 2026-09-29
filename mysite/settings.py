@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "easy_thumbnails",
     "debug_toolbar",
     "redisboard",
+    "rest_framework",
     "blog.apps.BlogConfig",
     "images.apps.ImagesConfig",
     "actions.apps.ActionsConfig",
@@ -194,4 +195,13 @@ CACHES = {
         "BACKEND": "django.core.cache.backends.redis.RedisCache",
         "LOCATION": "redis://127.0.0.1:6379",
     }
+}
+
+REST_FRAMEWORK = {
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticatedOrReadOnly"
+    ],
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.SessionAuthentication"
+    ],
 }
