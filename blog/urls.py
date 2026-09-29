@@ -1,4 +1,5 @@
 from django.urls import path
+from django.views.decorators.cache import cache_page
 
 from .feeds import LatestPostsFeed
 from .views import (
@@ -27,7 +28,7 @@ urlpatterns = [
     path("delete/<int:pk>/", PostDeleteView.as_view(), name="post_delete"),
     path("share/<int:pk>/", PostShareView.as_view(), name="post_share"),
     path("comment/<int:pk>/", PostCommentView.as_view(), name="post_comment"),
-    path("feed/", LatestPostsFeed(), name="post_feed"),
+    path("feed/", cache_page(15 * 60)(LatestPostsFeed()), name="post_feed"),
     path("search/", PostSearchView.as_view(), name="post_search"),
     path(
         "search/trigram/",

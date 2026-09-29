@@ -1,6 +1,7 @@
 import redis
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.core.cache import cache
 from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
@@ -68,13 +69,18 @@ class ImageRankingView(ListView):
     template_name = "images/ranking.html"
 
     def get_queryset(self):
-        image_ranking = r.zrange("image_ranking", 0, 9, desc=True)
-        image_ranking_pks = [int(pk) for pk in image_ranking]
+        most_viewed = cache.get("most_viewed_images")
+        if most_viewed is None:
+            image_ranking = r.zrange("image_ranking", 0, 9, desc=True)
+            image_ranking_pks = [int(pk) for pk in image_ranking]
 
-        most_viewed = list(Image.objects.filter(pk__in=image_ranking_pks))
-        most_viewed.sort(key=lambda image: image_ranking_pks.index(image.pk))
+            most_viewed = list(Image.objects.filter(pk__in=image_ranking_pks))
+            most_viewed.sort(key=lambda image: image_ranking_pks.index(image.pk))
+
+            cache.set("most_viewed_images", most_viewed, 15 * 60)
+
         return most_viewed
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["section"] = "images"

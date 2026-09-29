@@ -19,7 +19,6 @@ class DashBoard(LoginRequiredMixin, ListView):
     model = Action
     context_object_name = "actions"
     template_name = "registration/dashboard.html"
-    paginate_by = 10
 
     def get_queryset(self):
         if following_pks := self.request.user.following.values_list("pk", flat=True):
@@ -28,7 +27,8 @@ class DashBoard(LoginRequiredMixin, ListView):
                 .filter(user_id__in=following_pks)
                 .select_related("user", "user__profile")
                 .prefetch_related("target")
-            )
+                .order_by("-created_at")
+            )[:20]
         else:
             actions = Action.objects.none()
         return actions
@@ -36,7 +36,6 @@ class DashBoard(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["section"] = "dashboard"
-        context["page"] = context["page_obj"]
         return context
 
 

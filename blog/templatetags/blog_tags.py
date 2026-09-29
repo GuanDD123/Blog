@@ -1,5 +1,6 @@
 import markdown
 from django import template
+from django.core.cache import cache
 from django.db.models import Count
 from django.utils.safestring import mark_safe
 
@@ -21,9 +22,13 @@ def show_latest_posts(count=5):
 
 @register.simple_tag
 def get_most_commended_posts(count=5):
-    return Post.published.annotate(total_comments=Count("comments")).order_by(
-        "-total_comments"
-    )[:count]
+    most_commended = cache.get("most_commended_posts")
+    if most_commended is None:
+        most_commended = Post.published.annotate(
+            total_comments=Count("comments")
+        ).order_by("-total_comments")[:count]
+        cache.set("most_commended_posts", most_commended, 5 * 60)
+    return most_commended
 
 
 @register.filter(name="markdown")
