@@ -33,6 +33,7 @@ urlpatterns = [
     path("blog/", include("blog.urls", namespace="blog")),
     path("api/v1/blog/", include("blog.api.urls")),
     path("images/", include("images.urls", namespace="images")),
+    path("chat/", include("chat.urls", namespace="chat")),
     path(
         "sitemap.xml",
         cache_page(15 * 60)(sitemap),
