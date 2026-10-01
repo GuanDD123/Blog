@@ -1,0 +1,120 @@
+services:
+    web:
+        build: .
+        command: sh -c "python manage.py migrate --noinput && python manage.py collectstatic --noinput && daphne -b 0.0.0.0 -p 8000 mysite.asgi:application"
+        env_file:
+            - .env
+        environment: &app-environment
+            DB_ENGINE: postgresql
+            DB_NAME: ${DB_NAME:-blog}
+            DB_USER: ${DB_USER:-blog}
+            DB_PASSWORD: ${DB_PASSWORD:-blog}
+            DB_HOST: db
+            DB_PORT: "5432"
+            REDIS_HOST: redis
+            REDIS_PORT: "6379"
+            REDIS_DB: ${REDIS_DB:-0}
+            REDIS_PASSWORD: ""
+            CELERY_BROKER_URL: redis://redis:6379/0
+            CELERY_RESULT_BACKEND: redis://redis:6379/1
+        volumes:
+            - media:/app/media
+            - static:/app/staticfiles
+        depends_on:
+            db:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
+        restart: unless-stopped
+
+    celery:
+        build: .
+        command: celery -A mysite worker --loglevel=info
+        env_file:
+            - .env
+        environment: *app-environment
+        volumes:
+            - media:/app/media
+        depends_on:
+            db:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
+        restart: unless-stopped
+
+    nginx:
+        image: nginx:1.27-alpine
+        ports:
+            - "80:80"
+            - "443:443"
+        environment:
+            DOMAIN: ${DOMAIN:?Set DOMAIN in .env}
+            NGINX_ENVSUBST_FILTER: ^DOMAIN$
+        volumes:
+            - ./nginx/default.conf:/etc/nginx/templates/default.conf.template:ro
+            - letsencrypt:/etc/letsencrypt:ro
+            - certbot_webroot:/var/www/certbot:ro
+            - static:/app/staticfiles:ro
+            - media:/app/media:ro
+        depends_on:
+            - web
+        restart: unless-stopped
+
+    certbot:
+        image: certbot/certbot:latest
+        volumes:
+            - letsencrypt:/etc/letsencrypt
+            - certbot_webroot:/var/www/certbot
+        pid: service:nginx
+        entrypoint: /bin/sh
+        command: -c 'trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet --deploy-hook "kill -HUP 1"; sleep 12h & wait $$!; done'
+        depends_on:
+            - nginx
+        restart: unless-stopped
+
+    certbot-init:
+        image: certbot/certbot:latest
+        profiles: [bootstrap]
+        environment:
+            DOMAIN: ${DOMAIN:?Set DOMAIN in .env}
+            LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL:?Set LETSENCRYPT_EMAIL in .env}
+        ports:
+            - "80:80"
+        volumes:
+            - letsencrypt:/etc/letsencrypt
+        command: certonly --standalone --email ${LETSENCRYPT_EMAIL:?Set LETSENCRYPT_EMAIL in .env} --agree-tos --no-eff-email -d ${DOMAIN:?Set DOMAIN in .env}
+
+    db:
+        image: postgres:16-alpine
+        environment:
+            POSTGRES_DB: ${DB_NAME:-blog}
+            POSTGRES_USER: ${DB_USER:-blog}
+            POSTGRES_PASSWORD: ${DB_PASSWORD:-blog}
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+            interval: 5s
+            timeout: 5s
+            retries: 10
+        restart: unless-stopped
+
+    redis:
+        image: redis:7-alpine
+        command: redis-server --appendonly yes
+        volumes:
+            - redis_data:/data
+        healthcheck:
+            test: ["CMD", "redis-cli", "ping"]
+            interval: 5s
+            timeout: 3s
+            retries: 10
+        restart: unless-stopped
+
+volumes:
+    media:
+    static:
+    postgres_data:
+    redis_data:
+    letsencrypt:
+    certbot_webroot:

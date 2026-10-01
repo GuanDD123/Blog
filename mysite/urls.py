@@ -21,6 +21,11 @@ from django.contrib import admin
 from django.contrib.sitemaps.views import sitemap
 from django.urls import include, path
 from django.views.decorators.cache import cache_page
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularRedocView,
+    SpectacularSwaggerView,
+)
 
 from blog.sitemaps import PostSitemap
 from images.sitemaps import ImageSitemap
@@ -30,6 +35,11 @@ sitemaps = {"posts": PostSitemap, "images": ImageSitemap}
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("accounts/", include("accounts.urls")),
+    path("api-auth/", include("rest_framework.urls")),
+    path("api/dj-rest-auth/", include("dj_rest_auth.urls")),
+    path(
+        "api/dj-rest-auth/registration/", include("dj_rest_auth.registration.urls")
+    ),
     path("blog/", include("blog.urls", namespace="blog")),
     path("api/v1/blog/", include("blog.api.urls")),
     path("images/", include("images.urls", namespace="images")),
@@ -40,7 +50,20 @@ urlpatterns = [
         {"sitemaps": sitemaps},
         name="django.contrib.sitemaps.views.sitemap",
     ),
-    path("__debug__/", include("debug_toolbar.urls")),
+    path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
+    path(
+        "api/schema/swagger-ui/",
+        SpectacularSwaggerView.as_view(url_name="schema"),
+        name="swagger-ui",
+    ),
+    path(
+        "api/schema/redoc/",
+        SpectacularRedocView.as_view(url_name="schema"),
+        name="redoc",
+    ),
 ]
 if settings.DEBUG:
+    urlpatterns += [
+        path("__debug__/", include("debug_toolbar.urls")),
+    ]
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

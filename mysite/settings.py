@@ -14,27 +14,30 @@ from pathlib import Path
 
 from decouple import config
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
+# Security
+SECRET_KEY = config("SECRET_KEY")
+DEBUG = config("DEBUG", cast=bool)
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-zs3@r-g@d6t_45sd_23wim46%+vu9f*&-$#svk!jtg^8$$ek+z"
+if DEBUG:
+    ALLOWED_HOSTS = []
+else:
+    ADMINS = [
+        (config("ADMIN_EMAIL_USERNAME"), config("ADMIN_EMAIL_ADDRESS")),
+    ]
+    ALLOWED_HOSTS = config("ALLOWED_HOSTS").split(",")
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-ALLOWED_HOSTS = []
 
-
-# Application definition
-
+# Application
 INSTALLED_APPS = [
     "daphne",
-    "accounts.apps.AccountsConfig",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -46,17 +49,27 @@ INSTALLED_APPS = [
     "django.contrib.postgres",
     "taggit",
     "easy_thumbnails",
-    "debug_toolbar",
-    "redisboard",
     "rest_framework",
+    "rest_framework.authtoken",
+    "allauth",
+    "allauth.account",
+    'allauth.socialaccount',
+    "dj_rest_auth",
+    "dj_rest_auth.registration",
+    "drf_spectacular",
+    "accounts.apps.AccountsConfig",
     "blog.apps.BlogConfig",
     "images.apps.ImagesConfig",
     "actions.apps.ActionsConfig",
     "chat.apps.ChatConfig",
 ]
+if DEBUG:
+    INSTALLED_APPS += [
+        "debug_toolbar",
+        "redisboard",
+    ]
 
 MIDDLEWARE = [
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -64,10 +77,21 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
 ]
+if DEBUG:
+    MIDDLEWARE = [
+        "debug_toolbar.middleware.DebugToolbarMiddleware",
+        *MIDDLEWARE,
+    ]
 
 ROOT_URLCONF = "mysite.urls"
 
+WSGI_APPLICATION = "mysite.wsgi.application"
+ASGI_APPLICATION = "mysite.asgi.application"
+
+
+# Templates
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -83,12 +107,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "mysite.wsgi.application"
-
 
 # Database
-# https://docs.djangoproject.com/en/6.1/ref/settings/#databases
-
 if config("DB_ENGINE") == "sqlite":
     DATABASES = {
         "default": {
@@ -109,8 +129,17 @@ elif config("DB_ENGINE") == "postgresql":
     }
 
 
-# Password validation
-# https://docs.djangoproject.com/en/6.1/ref/settings/#auth-password-validators
+# Authentication
+AUTH_USER_MODEL = "accounts.CustomUser"
+
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+    "accounts.authentication.EmailAuthBackend",
+]
+
+LOGIN_REDIRECT_URL = "dashboard"
+LOGIN_URL = "login"
+LOGOUT_URL = "logout"
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -129,92 +158,90 @@ AUTH_PASSWORD_VALIDATORS = [
 
 
 # Internationalization
-# https://docs.djangoproject.com/en/6.1/topics/i18n/
-
 LANGUAGE_CODE = "en-us"
 
 TIME_ZONE = "Asia/Shanghai"
 
 USE_I18N = True
-
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/6.1/howto/static-files/
-
+# Static & Media Files
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+MEDIA_URL = "media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 
 # Email
-# https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
-
 MAILERS = {
     "default": {
         "BACKEND": "django.core.mail.backends.console.EmailBackend",
     },
 }
+
 DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL")
 
 
-AUTH_USER_MODEL = "accounts.CustomUser"
-
+# Django Sites
 SITE_ID = 1
 
-LOGIN_REDIRECT_URL = "dashboard"
-LOGIN_URL = "login"
-LOGOUT_URL = "logout"
 
-MEDIA_URL = "media/"
-MEDIA_ROOT = BASE_DIR / "media"
-
-AUTHENTICATION_BACKENDS = [
-    "django.contrib.auth.backends.ModelBackend",
-    "accounts.authentication.EmailAuthBackend",
-]
-
-INTERNAL_IPS = [
-    "127.0.0.1",
-]
-
-if DEBUG:
-    import mimetypes
-
-    mimetypes.add_type("application/javascript", ".js", True)
-    mimetypes.add_type("text/css", ".css", True)
-
+# Redis
 REDIS_HOST = config("REDIS_HOST")
 REDIS_PORT = config("REDIS_PORT")
 REDIS_DB = config("REDIS_DB")
 REDIS_PASSWORD = config("REDIS_PASSWORD")
 
+
+# Celery
 CELERY_BROKER_URL = config("CELERY_BROKER_URL")
 CELERY_RESULT_BACKEND = config("CELERY_RESULT_BACKEND")
 
+
+# Cache
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.redis.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379",
+        "LOCATION": f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}",
     }
 }
 
+
+# Channels / WebSocket
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"],
+        },
+    },
+}
+
+
+# DRF
 REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticatedOrReadOnly"
     ],
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.SessionAuthentication"
+        "rest_framework.authentication.SessionAuthentication",
+        "rest_framework.authentication.TokenAuthentication",
     ],
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
-ASGI_APPLICATION = "mysite.asgi.application"
-
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [("127.0.0.1", 6379)],
-        },
-    },
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Blog API",
+    "DESCRIPTION": "Your project description",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
 }
+
+
+# Debug
+INTERNAL_IPS = [
+    "127.0.0.1",
+]
