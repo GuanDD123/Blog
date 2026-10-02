@@ -57,7 +57,7 @@ class PostDetailView(DetailView):
     slug_url_kwarg = "slug"
 
     def get_queryset(self):
-        return Post.objects.filter(
+        return Post.published.filter(
             published_at__year=self.kwargs["year"],
             published_at__month=self.kwargs["month"],
             published_at__day=self.kwargs["day"],
